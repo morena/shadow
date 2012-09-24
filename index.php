@@ -22,6 +22,8 @@ $facebook = new Facebook(array(
   'secret' => 'be0e27d516de783fc8dd6cd5b213f3b2',
 ));
 
+
+
 // Get User ID
 $user = $facebook->getUser();
 
@@ -45,7 +47,9 @@ if ($user) {
 if ($user) {
   $logoutUrl = $facebook->getLogoutUrl();
 } else {
-  $loginUrl = $facebook->getLoginUrl();
+    $params = array('scope' => array('user_activities','user_location', 'user_photos', 'user_status', 'publish_actions'));
+    $this->view->url = $facebook->getLoginUrl($params);
+
 }
 
 // This call will always work since we are fetching public data.
@@ -180,13 +184,6 @@ function makeCall($msg)
 <!doctype html>
 <html xmlns:fb="http://www.facebook.com/2008/fbml">
   <head>
-
-    <?php
-    if($user)
-    {
-
-    }
-    ?>
     <title>Shadow</title>
     <link href='http://fonts.googleapis.com/css?family=Shadows+Into+Light+Two' rel='stylesheet' type='text/css'>
     <style>
