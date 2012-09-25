@@ -1,0 +1,22 @@
+<h2><a href="<?php echo $this->url; ?>" class="btn"><?php echo $this->logText; ?></a>
+<?php if(isset($this->text))
+{
+    echo $this->textl;
+} ?>
+</h2>
+
+<?php
+if(isset($this->user_details) && is_array($this->user_details)):
+?>
+<div style="text-align:left; width:960px; margin:0 auto;">
+<h1 style="font-size:38px; margin-bottom:20px;">You will post...</h1>
+<img src="https://graph.facebook.com/<?php echo $this->user_details['id']; ?>/picture?type=large" style="float:left; margin-right:20px;">
+<div style="float:left; width:700px;">
+    <h3><?php echo $this->user_details['msg']; ?></h3>
+
+    <?php
+        echo $this->form;
+    ?>
+
+</div>
+<?php endif; ?>

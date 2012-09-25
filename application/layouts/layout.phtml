@@ -1,0 +1,31 @@
+<?php
+$this->headMeta()->appendHttpEquiv('Content-Type', 'text/html;charset=utf-8');
+$this->headTitle('Mum, I am alive!')->setSeparator(' - ');
+
+$this->headLink()->prependStylesheet('/css/style.css');
+
+echo $this->doctype('HTML5');
+?>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <?php
+        echo $this->headMeta();
+        echo $this->headTitle();
+        echo $this->headLink();
+        echo $this->headScript();
+        ?>
+        <link href='http://fonts.googleapis.com/css?family=Shadows+Into+Light+Two' rel='stylesheet' type='text/css'>
+
+    </head>
+    <body>
+        <div id ="container" >
+                <h1><?php echo reset($this->headTitle()->getContainer()); ?></h1>
+                <h2 class="byline">Tell your dear ones that you are still alive</h2>
+
+            <div id="content">
+                <?php echo $this->layout()->content; ?>
+            </div>
+
+        </div>
+    </body>
+</html>

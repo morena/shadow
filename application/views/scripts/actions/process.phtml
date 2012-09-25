@@ -1,0 +1,16 @@
+<h2><a href="<?php echo $this->url; ?>" class="btn"><?php echo $this->logText; ?></a></h2>
+
+<?php
+if(isset($this->user_details) && is_array($this->user_details)):
+?>
+<div style="text-align:left; width:960px; margin:0 auto;">
+
+<?php if(isset($this->heading)):?>
+    <h1 style="font-size:38px; margin-bottom:20px;">Y<?php echo $this->heading;?></h1>
+<?php endif; ?>
+
+    <img src="https://graph.facebook.com/<?php echo $this->user_details['id']; ?>/picture?type=large" style="float:left; margin-right:20px;">
+<div style="float:left; width:700px;">
+    <p><?php echo $this->text; ?>
+</div>
+<?php endif; ?>
