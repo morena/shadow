@@ -133,7 +133,12 @@ class Application_Model_Facebook
             $user_details['status']['message'] = $user_profile['statuses']['data'][0]['message'];
 
         if(isset($user_profile['statuses']['data'][0]['updated_time']))
-        $user_details['status']['time'] = $this->formatDate($user_profile['statuses']['data'][0]['updated_time']);
+        {
+            $user_details['status']['time'] = $this->formatDate($user_profile['statuses']['data'][0]['updated_time']);
+            $user_details['status']['rawtime'] = $user_profile['statuses']['data'][0]['updated_time'];
+
+        }
+
 
 
 
@@ -142,7 +147,10 @@ class Application_Model_Facebook
         $user_details['checkins']['place'] = $user_profile['checkins']['data'][0]['place'];
 
         if(isset($user_profile['checkins']['data'][0]['created_time']))
+        {
             $user_details['checkins']['created_time'] = $this->formatDate($user_profile['checkins']['data'][0]['created_time']);
+            $user_details['checkins']['rawtime'] = $user_profile['checkins']['data'][0]['created_time'];
+        }
 
         if(isset($user_profile['checkins']['data'][0]['tags']))
         {
@@ -158,6 +166,25 @@ class Application_Model_Facebook
         if(isset($user_profile['checkins']['data'][0]['message']))
             $user_details['checkins']['message'] = $user_profile['checkins']['data'][0]['message'];
 
+
+
+
+
+        //Establish what's more recent: a checkin or a status
+        if(isset($user_details['checkins']) && isset($user_details['status']))
+        {
+            $latestActivity = $this->establishLatestActivity($user_details['checkins'], $user_details['status']);
+
+        }elseif(isset($user_details['checkins'])){
+
+            $latestActivity = $user_details['checkins'];
+
+        }elseif(isset($user_details['statuses'])){
+
+            $latestActivity = $user_details['status'];
+
+        }
+
         //Photo
         if(isset($user_profile['photos']['data'][0]['picure'][5]))
             $user_details['photos'] = $user_profile['photos']['data'][0]['picure'][5];
@@ -168,7 +195,7 @@ class Application_Model_Facebook
 
         $msg ='Mum, I am alive! ';
         //if the person has checked in
-        if( is_array($user_details['checkins']) && !empty($user_details['checkins']) )
+        if( is_array($latestActivity) && ($latestActivity['type'] == 'checkin') )
         {
             $msg .= 'I was last seen at ';
             $msg .= $user_details['checkins']['place']['name'];
@@ -185,11 +212,10 @@ class Application_Model_Facebook
             $msg .= '&quot;';
 
 
-        }elseif( is_array($user_details['status']) && !empty($user_details['status']))
-        {
+        }else{
+            $msg .= 'On '.$user_details['status']['time'];
             $msg .= ' I said: ';
             $msg .= '&quot;'.$user_details['status']['message'].'&quot;';
-            $msg .= ' on '.$user_details['status']['time'];
         }
 
         $salutation = ' Ciao, '.$user_details['first_name'];
@@ -215,9 +241,19 @@ class Application_Model_Facebook
     }
 
 
-    protected function establishLatestActivity()
+    protected function establishLatestActivity($checkin, $status)
     {
+        $checkinTime = strtotime($checkin['rawtime']);
+        $statusTime = strtotime($status['rawtime']);
 
+        if($checkinTime > $statusTime)
+        {
+            $checkin['type'] = 'checkin';
+            return $checkin;
+        }else{
+            $status['type'] = 'status';
+            return $status;
+        }
     }
 
 
