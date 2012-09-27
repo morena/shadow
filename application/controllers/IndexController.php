@@ -8,37 +8,81 @@ class IndexController extends Zend_Controller_Action {
 
     public function indexAction()
     {
+
+        // cache miss; connect to the fb api*/
         require_once('models/Facebook.php');
         $facebook = new Application_Model_Facebook();
+        $userid = $facebook->getUser();
 
-        $this->view->url = $facebook->getLogUrl();
-        $this->view->logText = $facebook->getLogText();
-        $this->view->text = $facebook->getText();
-        $user = $facebook->getUser();
-        if($user)
-        {
-            $this->view->user = $user;
-            $userProfile = $facebook->getUserProfile();
-            if($userProfile)
+        require_once('models/Memcache.php');
+        $cache_m = new Application_Model_Memcache();
+        $cache = $cache_m->getCache();
+
+        // see if a cache already exists:
+        if( ($user = $cache->load('user'.$userid)) === false ) {
+
+            $user = array();
+
+            $url = $facebook->getLogUrl();
+            $user['url'] = $url;
+            $user['logText'] = $facebook->getLogText();
+            $user['text'] = $facebook->getText();
+
+            if($userid)
             {
-                $this->view->user_details = $userProfile;
-
-                $this->view->form = $this->actionForm($userProfile['msg']);
+                $userProfile = $facebook->getUserProfile();
+                $user['userProfile'] = $userProfile;
+                $user['url'] = "/index/logout/?url=".$url;
             }
+
+            $cache->save($user, 'user'.$userid);
+
+
+        } else {
+
+            // cache hit! shout so that we know
+            echo "This one is from cache!\n\n";
+            $user = $cache->load('user'.$userid);
+
         }
+
+        if(isset($user['userProfile']))
+        {
+            $this->view->form = $this->actionForm($user);
+            $this->view->fullMsg = $user['userProfile']['fullMsg'];
+        }
+
+
+        $this->view->user = $user;
 
     }
 
 
-    protected function actionForm($msg)
+    protected function actionForm($user)
     {
         require_once 'forms/Actions.php';
 
         $form = new Application_Form_Actions();
         $mgElement = $form->getElement('msg');
-        $mgElement->setValue($msg);
+        $mgElement->setValue($user['userProfile']['msg']);
+        $sender = $form->getElement('yourname');
+        $sender->setValue($user['userProfile']['first_name']);
 
         return $form;
+    }
+
+    public function logoutAction()
+    {
+        if ($this->getRequest()->isGet())
+        {
+            $this->_helper->layout()->disableLayout();
+            $this->_helper->viewRenderer->setNoRender(true);
+            $params = $this->getRequest()->getParams();
+            Zend_Session::destroy();
+            //$this->_redirect($params['url']);
+            $this->_helper->redirector->gotoUrlAndExit($params['url']);
+        }
+
     }
 
     /* public function indexAction()

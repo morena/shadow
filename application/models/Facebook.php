@@ -211,12 +211,17 @@ class Application_Model_Facebook
             }
             $msg .= '&quot;';
 
+            $user_details['fullMsg'] = $msg;
+
 
         }else{
             $msg .= 'On '.$user_details['status']['time'];
             $msg .= ' I said: ';
             $msg .= '&quot;'.$user_details['status']['message'].'&quot;';
+
+            $user_details['fullMsg'] = $msg;
         }
+
 
         $salutation = ' Ciao, '.$user_details['first_name'];
         $salutationLength = strlen($salutation);

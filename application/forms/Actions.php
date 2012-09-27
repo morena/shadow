@@ -10,7 +10,8 @@ class Application_Form_Actions extends Zend_Form {
         $this->setAction('/actions/process');
 
         $this->addElement('hidden', 'msg');
-        //$mgElement->setValue($msg);
+
+        $this->addElement('hidden', 'yourname');
 
         $this->addElement('text', 'name', array(
                     'label' => 'Name of the person you want to call/text',

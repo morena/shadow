@@ -1,22 +1,28 @@
-<h2><a href="<?php echo $this->url; ?>" class="btn"><?php echo $this->logText; ?></a>
-<?php if(isset($this->text))
+<h2><a href="<?php echo $this->user['url']; ?>" class="btn"><?php echo $this->user['logText']; ?></a>
+<?php if(isset($this->user['text']))
 {
-    echo $this->textl;
+    echo '<br />'.$this->user['text'];
 } ?>
 </h2>
 
 <?php
-if(isset($this->user_details) && is_array($this->user_details)):
+if(isset($this->user['userProfile']) && is_array($this->user['userProfile'])):
 ?>
 <div style="text-align:left; width:960px; margin:0 auto;">
-<h1 style="font-size:38px; margin-bottom:20px;">You will post...</h1>
-<img src="https://graph.facebook.com/<?php echo $this->user_details['id']; ?>/picture?type=large" style="float:left; margin-right:20px;">
-<div style="float:left; width:700px;">
-    <h3><?php echo $this->user_details['msg']; ?></h3>
+    <h3>Your latest Facebook Activity is...</h3>
+    <p class="post"><?php echo $this->user['userProfile']['fullMsg'];?></p>
 
-    <?php
-        echo $this->form;
-    ?>
 
+    <h3>You will post...</h3>
+    <h4>Remember, we can only text 160 chars, so your text message will look like this...</h4>
+
+    <img src="https://graph.facebook.com/<?php echo $this->user['userProfile']['id']; ?>/picture?type=large" style="float:left; margin-right:20px;">
+    <div style="float:left; width:700px;">
+        <p class="post"><?php echo $this->user['userProfile']['msg']; ?></p>
+
+        <?php
+            echo $this->form;
+        ?>
+    </div>
 </div>
 <?php endif; ?>

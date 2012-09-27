@@ -24,16 +24,19 @@ class Application_Model_Twilio
     private $_myNumber = '+447789866809';
 
 
-    public function sendText($msg, $to = null, $from = null) {
+    public function sendText($msg, $to = null,  $recipientName = null, $sender = null)
+    {
         $sent = array();
 
         if (isset($to))
+        {
             $myNumber = $_REQUEST['number'];
-        else
+        }else{
             $myNumber = $this->_myNumber;
+        }
 
-        if (isset($from))
-            $name = $from;
+        if (isset($sender))
+            $name = $sender;
         else
             $name = "Morena @mfujica";
 
@@ -58,31 +61,36 @@ class Application_Model_Twilio
         // $name is the name next to it
         foreach ($people as $number => $name) {
 
-            $sms = $client->account->sms_messages->create(
-                    // Step 6: Change the 'From' number below to be a valid Twilio number
-                    // that you've purchased, or the (deprecated) Sandbox number
-                    $this->_twilioNumber,
-                    // the number we are sending to - Any phone number
-                    $number,
-                    // the sms body
-                    $msg
-            );
+            try {
+                $sms = $client->account->sms_messages->create(
+                        // Step 6: Change the 'From' number below to be a valid Twilio number
+                        // that you've purchased, or the (deprecated) Sandbox number
+                        $this->_twilioNumber,
+                        // the number we are sending to - Any phone number
+                        $number,
+                        // the sms body
+                        $msg
+                );
 
-            // Display a confirmation message on the screen
-            // ID i.e. SM33bd3680b76d881f2e01f0b8f412ef2e
-            $return[$sms->sid]['msg'] = "SMS ID '.$sms->sid.' sent to $name";
-            $return[$sms->sid]['status'] = $sms->status;
+                // Display a confirmation message on the screen
+                // ID i.e. SM33bd3680b76d881f2e01f0b8f412ef2e
+                $return[$sms->sid]['msg'] = "SMS ID $sms->sid to $recipientName was queued";
+                $return[$sms->sid]['status'] = $sms->status;
 
 
-            /*// Create our Application instance (replace this with your appId and secret).
-            $facebook = new Facebook(array(
-                        'appId' => '517986281561274',
-                        'secret' => 'be0e27d516de783fc8dd6cd5b213f3b2',
-                    ));
-            $facebook->api('/me/feed', 'POST', array(
-                'link' => 'http://www.morenafiore.com/shadow',
-                'message' => 'I just sent an SMS with my latest Facebook whereabouts, Subscribe to my updates and receive SMS '
-            ));*/
+                /*// Create our Application instance (replace this with your appId and secret).
+                $facebook = new Facebook(array(
+                            'appId' => '517986281561274',
+                            'secret' => 'be0e27d516de783fc8dd6cd5b213f3b2',
+                        ));
+                $facebook->api('/me/feed', 'POST', array(
+                    'link' => 'http://www.morenafiore.com/shadow',
+                    'message' => 'I just sent an SMS with my latest Facebook whereabouts, Subscribe to my updates and receive SMS '
+                ));*/
+            }catch (Exception $e) {
+                $return[0]['msg'] = 'Error: ' . $e->getMessage();
+                $return[0]['status'] = 'error';
+            }
         }
 
         return $return;
@@ -91,6 +99,10 @@ class Application_Model_Twilio
     public function checkSmsStatus($smsId)
     {
         $client = new Services_Twilio($this->_accountSid, $this->_authToken);
+        $sms_retrieved = $client->account->sms_messages->get($smsId);
+        return array('status' => $sms_retrieved->status,
+                     'date'   => $sms_retrieved->date_sent);
+
         /*$message = $client->listResource->sms_messages->get($smsId);
 
         echo'<pre>';
@@ -98,43 +110,46 @@ class Application_Model_Twilio
         echo '</pre>';*/
     }
 
-    public function makeCall($msg) {
-        // Step 2: set our AccountSid and AuthToken from www.twilio.com/user/account
-        $AccountSid = "ACc8c33b4c5a624fd56df1edeff6fe6291";
-        $AuthToken = "a80bfe520cbdfca0583b7e706ec80178";
-        $twilioNumber = '+442033221553';
+    public function makeCall($msg, $to = null,  $recipientName = null, $sender = null)
+    {
+        if (isset($to))
+        {
+            $myNumber = $to;
 
-        if (isset($_REQUEST['number']))
-            $myNumber = $_REQUEST['number'];
-        else
-            $myNumber = '+447789866809';
-        if (isset($_REQUEST['name']))
-            $name = $_REQUEST['name'];
+        }else{
+            $myNumber = $this->_myNumber;
+        }
+
+        if (isset($sender))
+            $name = $sender;
         else
             $name = "Morena @mfujica";
 
-        // Include the Twilio PHP library
-        require 'twilio/Services/Twilio.php';
+        // Step 3: instantiate a new Twilio Rest Client
+        $client = new Services_Twilio($this->_accountSid, $this->_authToken);
 
         // Twilio REST API version
         $version = "2010-04-01";
 
         // Instantiate a new Twilio Rest Client
-        $client = new Services_Twilio($AccountSid, $AuthToken, $version);
+        $client = new Services_Twilio($this->_accountSid, $this->_authToken, $version);
 
         try {
             // Initiate a new outbound call
             $call = $client->account->calls->create(
-                    $twilioNumber, // The number of the phone initiating the call
+                    $this->_twilioNumber, // The number of the phone initiating the call
                     $myNumber, // The number of the phone receiving call
-                    'http://www.morenafiore.com/shadow/response.php?call=true&msg=' . urlencode($msg), // The URL Twilio will request when the call is answered
+                    'http://shadow.morenafiore.com/actions/responses/?call=true&msg=' . urlencode($msg), // The URL Twilio will request when the call is answered
                     array(
-                'StatusMethod' => 'GET'
+                        'Method' => 'GET'
                     )
             );
-            echo 'Started call for : ' . $name . ' ID:' . $call->sid;
+            $return[$call->sid]['msg'] = "Call ID $call->sid sent to $recipientName";
+            $return[$call->sid]['status'] = $call->status;
+
         } catch (Exception $e) {
-            echo 'Error: ' . $e->getMessage();
+            $return[0]['msg'] = 'Error: ' . $e->getMessage();
+            $return[0]['status'] = 'error';
         }
     }
 
