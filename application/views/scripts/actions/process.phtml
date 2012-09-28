@@ -11,6 +11,6 @@ if(isset($this->user['userProfile']) && is_array($this->user['userProfile'])):
 
     <img src="https://graph.facebook.com/<?php echo $this->user['userProfile']['id']; ?>/picture?type=large" style="float:left; margin-right:20px;">
 <div style="float:left; width:700px;">
-    <p><?php echo $this->user['text']; ?>
+    <p><?php echo $this->text; ?>
 </div>
 <?php endif; ?>

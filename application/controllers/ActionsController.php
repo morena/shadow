@@ -13,43 +13,11 @@ class ActionsController extends Zend_Controller_Action {
      */
     public function processAction()
     {
-        /// cache miss; connect to the fb api*/
-        require('models/Facebook.php');
-        $facebook = new Application_Model_Facebook();
-        $userid = $facebook->getUser();
-
-        require_once('models/Memcache.php');
-        $cache_m = new Application_Model_Memcache();
-        $cache = $cache_m->getCache();
-
-        // see if a cache already exists:
-        if( ($user = $cache->load('user'.$userid)) === false ) {
-
-            $user = array();
-
-            $url = $facebook->getLogUrl();
-            $user['url'] = $url;
-            $user['logText'] = $facebook->getLogText();
-            $user['text'] = $facebook->getText();
-
-            if($userid)
-            {
-                $user['url'] = "/index/logout/?url=".$url;
-            }
-
-            $cache->save($user, 'user'.$userid);
-
-
-        } else {
-
-            // cache hit! shout so that we know
-            echo "This one is from cache!\n\n";
-            $user = $cache->load('user'.$userid);
-
-        }
+        require_once('models/User.php');
+        $user_m = new Application_Model_User();
+        $user = $user_m->getUser();
 
         $this->view->user = $user;
-
 
 
         if ($this->getRequest()->isPost()) {
@@ -81,7 +49,6 @@ class ActionsController extends Zend_Controller_Action {
                         $to = null;
 
                     $smss = $twilio->sendText($params['msg'], $to, $recipientName, $sender);
-
                     if(is_array($smss))
                     {
                         $this->view->heading = 'Your SMS was sent';
@@ -90,8 +57,9 @@ class ActionsController extends Zend_Controller_Action {
                         {
                             $this->view->text = $sms['msg'];
                             $status = $twilio->checkSmsStatus($id);
-                            if($status['status'] == 'sent')
-                                $this->view->text .= ' and was '.$status['status'].' on '.$status['date'];
+                            if(is_array($status))
+                                if($status['status'] == 'sent')
+                                    $this->view->text .= ' and was '.$status['status'].' on '.$status['date'];
                         }
                     }
 
@@ -105,7 +73,7 @@ class ActionsController extends Zend_Controller_Action {
                     if(isset($params['name']))
                     {
                         $recipientName = $params['name'];
-                        $params['msg'] = str_replae('Mum', $recipientName, $params['msg']);
+                        $params['msg'] = str_replace('Mum', $recipientName, $params['msg']);
                     }else
                         $recipientName = null;
 

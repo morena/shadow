@@ -9,42 +9,9 @@ class IndexController extends Zend_Controller_Action {
     public function indexAction()
     {
 
-        // cache miss; connect to the fb api*/
-        require_once('models/Facebook.php');
-        $facebook = new Application_Model_Facebook();
-        $userid = $facebook->getUser();
-
-        require_once('models/Memcache.php');
-        $cache_m = new Application_Model_Memcache();
-        $cache = $cache_m->getCache();
-
-        // see if a cache already exists:
-        if( ($user = $cache->load('user'.$userid)) === false ) {
-
-            $user = array();
-
-            $url = $facebook->getLogUrl();
-            $user['url'] = $url;
-            $user['logText'] = $facebook->getLogText();
-            $user['text'] = $facebook->getText();
-
-            if($userid)
-            {
-                $userProfile = $facebook->getUserProfile();
-                $user['userProfile'] = $userProfile;
-                $user['url'] = "/index/logout/?url=".$url;
-            }
-
-            $cache->save($user, 'user'.$userid);
-
-
-        } else {
-
-            // cache hit! shout so that we know
-            echo "This one is from cache!\n\n";
-            $user = $cache->load('user'.$userid);
-
-        }
+        require_once('models/User.php');
+        $user_m = new Application_Model_User();
+        $user = $user_m->getUser();
 
         if(isset($user['userProfile']))
         {

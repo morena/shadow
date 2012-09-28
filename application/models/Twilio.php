@@ -100,9 +100,13 @@ class Application_Model_Twilio
     {
         $client = new Services_Twilio($this->_accountSid, $this->_authToken);
         $sms_retrieved = $client->account->sms_messages->get($smsId);
-        return array('status' => $sms_retrieved->status,
+        if(isset($sms_retrieved->status) && isset($sms_retrieved->date_sent))
+        {
+            return array('status' => $sms_retrieved->status,
                      'date'   => $sms_retrieved->date_sent);
-
+        }else{
+            return false;
+        }
         /*$message = $client->listResource->sms_messages->get($smsId);
 
         echo'<pre>';
